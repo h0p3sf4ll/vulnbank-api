@@ -1,4 +1,4 @@
-# VulnBank API
+# VulnBank API — Secure Code Review Challenge
 
 > **Warning:** This application is intentionally insecure. Run it only in an isolated local environment.
 
@@ -9,68 +9,62 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Server starts on `http://localhost:5001`. Setup should take under two minutes.
+Server starts on `http://localhost:5001`. Running the app is optional — the challenge is primarily a source-code review.
 
 ---
 
-## Engagement Brief
+## Brief
 
-You are conducting an authorized API penetration test against VulnBank, a small fintech platform. The client has issued you a test account and granted full access to the API surface described below.
+You are reviewing the `vulnbank/` package before it ships to production. The developer has implemented a small fintech API; your job is to find security vulnerabilities in the source code, explain why each is dangerous, and write the correct fix.
 
-**Your test credentials:**
+**For each vulnerability you find, provide:**
 
-| Username | Password     |
-|----------|-------------|
-| alice    | password123 |
+1. The file and function where the issue lives
+2. The vulnerability class (e.g. BOLA, SQLi, mass assignment)
+3. A brief explanation of why it is dangerous
+4. The corrected code
 
-Other users have registered accounts on the platform.
-
-**Objective:** Identify authorization and access-control vulnerabilities. For each finding, document:
-- The request (method, path, headers, body)
-- The response that demonstrates the issue
-- Impact assessment
-- Recommended remediation
-
-**Target time:** 30 minutes. A strong candidate will find 5–6 issues within that window. Bonus findings reward candidates who think beyond the expected paths.
+**Target time:** 30 minutes. A strong candidate will find 5–6 issues. Bonus findings reward candidates who read beyond the obvious paths.
 
 ---
 
-## API Reference
+## Codebase Overview
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | /auth/login | — | Obtain a Bearer token |
-| GET | /api/users/me | ✓ | Your profile |
-| PATCH | /api/users/me | ✓ | Update your profile |
-| GET | /api/accounts | ✓ | Your bank accounts |
-| GET | /api/accounts/:id | ✓ | Account details |
-| GET | /api/accounts/:id/transactions | ✓ | Account transaction history |
-| GET | /api/transactions/:id | ✓ | Transaction detail |
-| POST | /api/transfers | ✓ | Initiate a fund transfer (`from_account`, `to_account`, `amount`) |
-| GET | /api/messages | ✓ | Inbox summary |
-| GET | /api/messages/:id | ✓ | Message detail |
-| GET | /api/search/users | ✓ | Search users by username or email (`?q=`) |
-| GET | /api/search/accounts | ✓ | Search your accounts by type (`?type=`) |
+```
+vulnbank/
+├── config.py        — application configuration
+├── models.py        — TypedDicts for User, Account, Transaction, Message
+├── data.py          — in-memory repositories (UserRepository, AccountRepository, …)
+├── auth.py          — JWT creation, require_auth and require_admin decorators
+├── services.py      — TransferService (business logic)
+├── database.py      — SQLite setup for search features
+└── routes/
+    ├── auth.py      — POST /auth/login
+    ├── users.py     — GET/PATCH /api/users/…
+    ├── accounts.py  — GET /api/accounts/…, /api/transactions/…
+    ├── transfers.py — POST /api/transfers
+    ├── messages.py  — GET /api/messages/…
+    ├── search.py    — GET /api/search/users, /api/search/accounts
+    └── admin.py     — GET /api/admin/…
+```
 
-*Additional endpoints may exist outside this table.*
+Start your review wherever makes sense. Not all files contain vulnerabilities.
 
 ---
 
 ## Discussion Questions
 
-Answer each question concisely. They increase in difficulty.
-
 **Q1 — Warm-up**
-Pick one BOLA vulnerability you found. Show the exact request that exploits it, identify the missing check in the code, and write the one-line fix.
+Open `vulnbank/routes/users.py`. The `get_user()` function is missing a security check. What check is missing, and what is the one-line fix?
 
 **Q2**
-The `PATCH /api/users/me` endpoint uses a field blocklist to prevent mass assignment. Give a payload that exploits this, explain *why* blocklists are fragile as a control, and describe the safer pattern.
+Review `UserRepository.update()` in `vulnbank/data.py`. The method uses a `PROTECTED_FIELDS` set to guard against unwanted writes. Explain why this pattern is fragile, give an example of how it can be abused, and rewrite the method using the safer pattern.
 
 **Q3**
-You found SQL injection in at least one search endpoint. Write the parameterized version of the vulnerable query. Beyond parameterization, what additional layers of defense would you add in a production system?
+Read `vulnbank/routes/search.py`. Both query functions have the same class of vulnerability. Identify it, explain the risk, and rewrite both functions so they are no longer vulnerable. Beyond the code fix, what other controls would you recommend at the infrastructure or framework level?
 
 **Q4**
-There are two distinct paths to admin privilege escalation in this application. Identify both, explain why each works, and for each describe the minimal fix.
+There are two independent paths by which an attacker can gain admin privileges in this application. Identify both — specifying the file and function for each — explain why each works, and describe the fix for each.
 
 **Q5 — Stretch**
-BOLA and BFLA are both authorization failures. Explain the architectural difference between them. Then describe how you would detect each class automatically in a CI pipeline — what does the test harness look like, and what are its limits?
+`TransferService.execute()` in `vulnbank/services.py` has an authorization flaw that is architecturally different from the ones in `routes/users.py`. Explain the difference, name the vulnerability class, and write the corrected `execute()` signature and the check it needs.
