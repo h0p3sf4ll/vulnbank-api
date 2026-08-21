@@ -13,6 +13,10 @@ def create_app(config: Config | None = None) -> Flask:
     app.config["TOKEN_EXPIRY_HOURS"] = cfg.token_expiry_hours
     app.config["DEBUG"] = cfg.debug
 
+    from vulnbank.database import get_db
+    with app.app_context():
+        get_db()
+
     register_blueprints(app)
 
     @app.route("/health")
