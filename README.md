@@ -43,6 +43,7 @@ vulnbank/
     ├── users.py     — GET/PATCH /api/users/…
     ├── accounts.py  — GET /api/accounts/…, /api/transactions/…
     ├── transfers.py — POST /api/transfers
+    ├── receipts.py  — POST /api/transfers/<id>/receipt
     ├── messages.py  — GET /api/messages/…
     ├── search.py    — GET /api/search/users, /api/search/accounts
     └── admin.py     — GET /api/admin/…
@@ -68,3 +69,6 @@ There are two independent paths by which an attacker can gain admin privileges i
 
 **Q5 — Stretch**
 `TransferService.execute()` in `vulnbank/services.py` has an authorization flaw that is architecturally different from the ones in `routes/users.py`. Explain the difference, name the vulnerability class, and write the corrected `execute()` signature and the check it needs.
+
+**Q6 — Stretch**
+Review `send_receipt()` in `vulnbank/routes/receipts.py`. The function makes an outbound HTTP request based on caller-supplied input. What class of vulnerability does this introduce, and what is the minimal input validation needed to prevent it? What would an attacker target in a cloud-hosted environment?
