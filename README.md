@@ -24,7 +24,7 @@ You are reviewing the `vulnbank/` package before it ships to production. The dev
 3. A brief explanation of why it is dangerous
 4. The corrected code
 
-**Target time:** 30 minutes. A strong candidate will find 5–6 issues. Bonus findings reward candidates who read beyond the obvious paths.
+**Target time:** 30 minutes. A strong candidate will find 6–7 issues. Bonus findings reward candidates who read beyond the obvious paths.
 
 ---
 
